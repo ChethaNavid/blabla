@@ -14,7 +14,7 @@ class HomeContent extends StatelessWidget {
   const HomeContent({super.key});
 
   void onRidePrefSelected(BuildContext context, RidePreference pref) async {
-    context.watch<HomeViewModel>().selectPreference(pref); // updates state + notify listeners
+    context.read<HomeViewModel>().selectPreference(pref);
 
     await Navigator.of(context).push(
       AnimationUtils.createBottomToTopRoute(RidesSelectionScreen()),

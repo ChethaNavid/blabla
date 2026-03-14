@@ -1,10 +1,11 @@
 import 'package:blabla/ui/widgets/buttons/bla_button.dart';
 import 'package:blabla/ui/widgets/display/bla_divider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../model/ride/locations.dart';
 import '../../../model/ride_pref/ride_pref.dart';
-import '../../../services/ride_prefs_service.dart';
+import '../../../ui/states/ride_preferences_state.dart';
 import '../../../utils/animations_util.dart';
 import '../../../utils/date_time_utils.dart';
 import '../../theme/theme.dart';
@@ -109,13 +110,14 @@ class _BlaRidePreferencePickerState extends State<BlaRidePreferencePicker> {
   }
 
   void onSeatNumberPressed() async {
+    final int maxAllowedSeats = context
+        .read<RidePreferencesState>()
+        .maxAllowedSeats;
+
     // 1- Select a arrival
     int? selectedSeatNumber = await Navigator.of(context).push<int>(
       AnimationUtils.createRightToLeftRoute(
-        BlaSeatPicker(
-          initSeats: requestedSeats,
-          maxSeat: RidePrefsService.maxAllowedSeats,
-        ),
+        BlaSeatPicker(initSeats: requestedSeats, maxSeat: maxAllowedSeats),
       ),
     );
 

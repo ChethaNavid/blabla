@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../model/ride/ride.dart';
 import '../../../model/ride_pref/ride_pref.dart';
-import '../../../services/ride_prefs_service.dart';
-import '../../../services/rides_service.dart';
 import '../../../utils/animations_util.dart' show AnimationUtils;
 import '../../theme/theme.dart';
+import 'view_model/ride_selection_view_model.dart';
 import 'widgets/ride_preference_modal.dart';
 import 'widgets/rides_selection_header.dart';
 import 'widgets/rides_selection_tile.dart';
@@ -35,36 +35,40 @@ class _RidesSelectionScreenState extends State<RidesSelectionScreen> {
     // Later
   }
 
-  RidePreference get selectedRidePreference =>
-      RidePrefsService.selectedPreference!; // not null at this state
-
-  List<Ride> get matchingRides =>
-      RidesService.getRidesFor(selectedRidePreference);
-
   void onPreferencePressed() async {
+    final RideSelectionViewModel vm = context.read<RideSelectionViewModel>();
+
     // 1 - Navigate to the rides preference picker
     RidePreference? newPreference = await Navigator.of(context)
         .push<RidePreference>(
           AnimationUtils.createRightToLeftRoute(
-            RidePreferenceModal(initialPreference: selectedRidePreference),
+            RidePreferenceModal(initialPreference: vm.currentPreference),
           ),
         );
 
     if (newPreference != null) {
-      // 2 - Ask the service to update the current preference
-      RidePrefsService.selectPreference(newPreference);
-
-      // 3 -   Update the widget state  - TODO Improve this with proper state managagement
-      setState(() {});
+      vm.selectPreference(newPreference);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final RideSelectionViewModel vm = context.watch<RideSelectionViewModel>();
+    final RidePreference? selectedRidePreference = vm.currentPreference;
+
+    if (selectedRidePreference == null) {
+      return const Scaffold(
+        body: Center(child: Text('No ride preference selected')),
+      );
+    }
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.only(
-          left: BlaSpacings.m, right: BlaSpacings.m, top: BlaSpacings.s),
+          left: BlaSpacings.m,
+          right: BlaSpacings.m,
+          top: BlaSpacings.s,
+        ),
         child: Column(
           children: [
             RideSelectionHeader(
@@ -73,15 +77,15 @@ class _RidesSelectionScreenState extends State<RidesSelectionScreen> {
               onFilterPressed: onFilterPressed,
               onPreferencePressed: onPreferencePressed,
             ),
-        
+
             SizedBox(height: 100),
-        
+
             Expanded(
               child: ListView.builder(
-                itemCount: matchingRides.length,
+                itemCount: vm.rides.length,
                 itemBuilder: (ctx, index) => RideSelectionTile(
-                  ride: matchingRides[index],
-                  onPressed: () => onRideSelected(matchingRides[index]),
+                  ride: vm.rides[index],
+                  onPressed: () => onRideSelected(vm.rides[index]),
                 ),
               ),
             ),
